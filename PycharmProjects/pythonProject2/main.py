@@ -21,28 +21,56 @@ beams_client = PushNotifications(
 )
 
 
-def stream_handler(message):
-    print(message)
-    if(message['data'] == True):
-      response = beams_client.publish_to_interests(
+
+def send_notification(title, body):
+    response = beams_client.publish_to_interests(
         interests=['hello'],
         publish_body={
-          'apns': {
-            'aps': {
-              'alert': 'Hello!'
+            'apns': {
+                'aps': {
+                    'alert': title
+                }
+            },
+            'fcm': {
+                'notification': {
+                    'title': title,
+                    'body': body
+                }
             }
-          },
-          'fcm': {
-            'notification': {
-              'title': 'Api Terdeteksi',
-              'body': 'KEBAKARAN'
-            }
-          }
         }
-      )
+    )
+    print(response['publishId'])
 
-      print(response['publishId'])
+def stream_handler_api(message):
+    print(message)
+    value = message['data']
+    if value == True:
+        api_kondisi = db.child("/Sensors/Sensor Api/Kondisi").get().val()
+        send_notification('Api Terdeteksi', 'Bahaya : KEBAKARAN!')
+
+def stream_handler_gas(message):
+    print(message)
+    value = message['data']
+    if value >= 400:
+        gas_kondisi = db.child("/Sensors/Sensor Gas/Value").get().val()
+        send_notification('Kadar Gas Berlebih Terdeteksi', f'Waspada : {gas_kondisi} PPM')
+
+def stream_handler_suhu(message):
+    print(message)
+    value = message['data']
+    if value >= 40:
+        suhu_kondisi = db.child("/Sensors/Sensor Suhu/Value").get().val()
+        send_notification('Suhu Tinggi Terdeteksi', f'Waspada : {suhu_kondisi}℃')
 
 
-data_path = "/Sensors/Sensor Api/Value"
-my_stream = db.child(data_path).stream(stream_handler, None)
+# Streaming untuk Sensor Api
+data_path_api = "/Sensors/Sensor Api/Value"
+my_stream_api = db.child(data_path_api).stream(stream_handler_api, None)
+
+# Streaming untuk Sensor Gas
+data_path_gas = "/Sensors/Sensor Gas/Value"
+my_stream_gas = db.child(data_path_gas).stream(stream_handler_gas, None)
+
+# Streaming untuk Sensor Suhu
+data_path_suhu = "/Sensors/Sensor Suhu/Value"
+my_stream_suhu = db.child(data_path_suhu).stream(stream_handler_suhu, None)
