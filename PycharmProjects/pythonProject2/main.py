@@ -1,5 +1,6 @@
 import pyrebase
 from pusher_push_notifications import PushNotifications
+import time
 
 firebaseConfig = {
     'apiKey': "AIzaSyDGXyuMff5dbI7te0X4IuyfcQfCsomjZp8",
@@ -19,7 +20,6 @@ beams_client = PushNotifications(
     instance_id='782baeab-3199-497a-8655-25c8ead1a917',
     secret_key='DF10D89EC16196B300EE835021971D9F88E3725667087AD2935062B2A88592FF',
 )
-
 
 
 def send_notification(title, body):
@@ -46,14 +46,17 @@ def stream_handler_api(message):
     value = message['data']
     if value == True:
         api_kondisi = db.child("/Sensors/Sensor Api/Kondisi").get().val()
-        send_notification('Api Terdeteksi', 'Bahaya : KEBAKARAN!')
+        while value:
+            send_notification('Api Terdeteksi', 'Bahaya: KEBAKARAN!')
+            time.sleep(1)  # Tunggu 1 detik
+            value = db.child("/Sensors/Sensor Api/Value").get().val()
 
 def stream_handler_gas(message):
     print(message)
     value = message['data']
     if value >= 400:
         gas_kondisi = db.child("/Sensors/Sensor Gas/Value").get().val()
-        send_notification('Kadar Gas Berlebih Terdeteksi', f'Waspada : {gas_kondisi} PPM')
+        send_notification('Gas Berlebih Terdeteksi', f'Waspada : {gas_kondisi} PPM')
 
 def stream_handler_suhu(message):
     print(message)
