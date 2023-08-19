@@ -13,6 +13,7 @@ firebaseConfig = {
     'measurementId': "G-3B5YSH9D2P"
 }
 
+
 firebase = pyrebase.initialize_app(firebaseConfig)
 
 db = firebase.database()
